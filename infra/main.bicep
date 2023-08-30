@@ -9,8 +9,8 @@ param environmentName string
 @description('Primary location for all resources')
 param location string
 
-param appServicePlanName string = ''
-param backendServiceName string = ''
+param appServicePlanName string = 'openaisearchdocuments'
+param backendServiceName string = 'openaisearchbackend'
 param resourceGroupName string = ''
 
 param applicationInsightsName string = ''
@@ -25,10 +25,12 @@ param searchIndexName string // Set in main.parameters.json
 //param storageAccountName string = ''
 param storageResourceGroupName string = ''
 //param storageResourceGroupLocation string = location
-param storageContainerName string = 'content'
+param storageContainerName string = 'surface'
 
 //param openAiServiceName string = ''
 param openAiResourceGroupName string = ''
+
+/*
 @description('Location for the OpenAI resource group')
 @allowed(['canadaeast', 'eastus', 'francecentral', 'japaneast', 'northcentralus'])
 @metadata({
@@ -36,7 +38,8 @@ param openAiResourceGroupName string = ''
     type: 'location'
   }
 })
-//param openAiResourceGroupLocation string
+param openAiResourceGroupLocation string
+*/
 //param formRecognizerServiceName string = ''
 //param openAiSkuName string = 'S0'
 //param formRecognizerResourceGroupLocation string = location
@@ -47,7 +50,7 @@ param openAiResourceGroupName string = ''
 //param embeddingModelName string = 'text-embedding-ada-002'
 
 // change this to whatever you need it to be
-param formRecognizerResourceGroupName string = 'eastus'
+param formRecognizerResourceGroupName string = 'openaisearch'
 
 
 param chatGptDeploymentName string // Set in main.parameters.json
