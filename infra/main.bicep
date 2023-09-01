@@ -10,7 +10,7 @@ param environmentName string
 param location string
 
 param appServicePlanName string = 'openaisearchdocuments'
-param backendServiceName string = 'openaisearchbackend'
+param backendServiceName string = 'openaisearchbackendservice'
 param resourceGroupName string = ''
 
 param applicationInsightsName string = ''
