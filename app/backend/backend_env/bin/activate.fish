@@ -33,7 +33,7 @@ end
 # Unset irrelevant variables.
 deactivate nondestructive
 
-set -gx VIRTUAL_ENV "/home/brandon/projects/openai/manufacturing/azureopenaisearchdocs/app/backend/backend_env"
+set -gx VIRTUAL_ENV "/home/brandon/projects/openai/manufacturing/mohawk/hackathon/app/backend/backend_env"
 
 set -gx _OLD_VIRTUAL_PATH $PATH
 set -gx PATH "$VIRTUAL_ENV/bin" $PATH
