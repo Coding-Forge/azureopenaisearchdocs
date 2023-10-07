@@ -22,9 +22,9 @@ param searchServiceResourceGroupLocation string = location
 param searchServiceSkuName string = 'standard'
 param searchIndexName string // Set in main.parameters.json
 
-//param storageAccountName string = ''
+param storageAccountName string = ''
 param storageResourceGroupName string = ''
-//param storageResourceGroupLocation string = location
+param storageResourceGroupLocation string = location
 param storageContainerName string = 'surface'
 
 //param openAiServiceName string = ''
@@ -38,19 +38,21 @@ param openAiResourceGroupName string = ''
     type: 'location'
   }
 })
+
 param openAiResourceGroupLocation string
+param openAiSkuName string = 'S0'
+param chatGptDeploymentCapacity int = 30
+param chatGptModelVersion string = '0301'
+param embeddingDeploymentCapacity int = 0
+param embeddingModelName string = 'text-embedding-ada-002'
 */
-//param formRecognizerServiceName string = ''
-//param openAiSkuName string = 'S0'
-//param formRecognizerResourceGroupLocation string = location
-//param formRecognizerSkuName string = 'S0'
-//param chatGptDeploymentCapacity int = 30
-//param chatGptModelVersion string = '0301'
-//param embeddingDeploymentCapacity int = 0
-//param embeddingModelName string = 'text-embedding-ada-002'
+
+param formRecognizerServiceName string = ''
+param formRecognizerResourceGroupLocation string = location
+param formRecognizerSkuName string = 'S0'
 
 // change this to whatever you need it to be
-param formRecognizerResourceGroupName string = 'openaisearch'
+param formRecognizerResourceGroupName string = ''
 
 
 param chatGptDeploymentName string // Set in main.parameters.json
@@ -132,7 +134,7 @@ module backend 'core/host/appservice.bicep' = {
     scmDoBuildDuringDeployment: true
     managedIdentity: true
     appSettings: {
-      AZURE_STORAGE_ACCOUNT: 'azureopenaisearchstorage' //storage.outputs.name
+      AZURE_STORAGE_ACCOUNT: storage.outputs.name
       AZURE_STORAGE_CONTAINER: storageContainerName
       AZURE_OPENAI_RESOURCE_GROUP: 'coding-forge'
       AZURE_OPENAI_SERVICE: 'codingforgeai'  // openAi.outputs.name
@@ -182,6 +184,7 @@ module openAi 'core/ai/cognitiveservices.bicep' = {
     ]
   }
 }
+*/
 
 module formRecognizer 'core/ai/cognitiveservices.bicep' = {
   name: 'formrecognizer'
@@ -196,7 +199,6 @@ module formRecognizer 'core/ai/cognitiveservices.bicep' = {
     }
   }
 }
-*/
 
 module searchService 'core/search/search-services.bicep' = {
   name: 'search-service'
@@ -217,7 +219,7 @@ module searchService 'core/search/search-services.bicep' = {
   }
 }
 
-/*
+
 module storage 'core/storage/storage-account.bicep' = {
   name: 'storage'
   scope: storageResourceGroup
@@ -236,12 +238,12 @@ module storage 'core/storage/storage-account.bicep' = {
     containers: [
       {
         name: storageContainerName
-        //publicAccess: 'None'
+        publicAccess: 'None'
       }
     ]
   }
 }
-*/
+
 
 // USER ROLES
 module openAiRoleUser 'core/security/role.bicep' = {
@@ -355,15 +357,15 @@ output AZURE_OPENAI_CHATGPT_DEPLOYMENT string = chatGptDeploymentName
 output AZURE_OPENAI_CHATGPT_MODEL string = chatGptModelName
 output AZURE_OPENAI_EMB_DEPLOYMENT string = embeddingDeploymentName
 
-//output AZURE_FORMRECOGNIZER_SERVICE string = formRecognizer.outputs.name
-//output AZURE_FORMRECOGNIZER_RESOURCE_GROUP string = formRecognizerResourceGroup.name
+output AZURE_FORMRECOGNIZER_SERVICE string = formRecognizer.outputs.name
+output AZURE_FORMRECOGNIZER_RESOURCE_GROUP string = formRecognizerResourceGroup.name
 
 output AZURE_SEARCH_INDEX string = searchIndexName
 output AZURE_SEARCH_SERVICE string = searchService.outputs.name
 output AZURE_SEARCH_SERVICE_RESOURCE_GROUP string = searchServiceResourceGroup.name
 
-output AZURE_STORAGE_ACCOUNT string =  'azureopenaisearchstorage' // storage.outputs.name
-output AZURE_STORAGE_CONTAINER string = 'surface'  //storageContainerName
-output AZURE_STORAGE_RESOURCE_GROUP string = 'openaisearch'  //storageResourceGroup.name
+output AZURE_STORAGE_ACCOUNT string =   storage.outputs.name
+output AZURE_STORAGE_CONTAINER string = storageContainerName
+output AZURE_STORAGE_RESOURCE_GROUP string = storageResourceGroup.name
 
 output BACKEND_URI string = backend.outputs.uri

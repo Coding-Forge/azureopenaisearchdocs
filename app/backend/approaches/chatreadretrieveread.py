@@ -156,7 +156,7 @@ If you cannot generate a search query, return just the number 0.
             n=1)
 
         chat_content = chat_completion.choices[0].message.content
-
+        
         msg_to_display = '\n\n'.join([str(message) for message in messages])
 
         return {"data_points": results, "answer": chat_content, "thoughts": f"Searched for:<br>{query_text}<br><br>Conversations:<br>" + msg_to_display.replace('\n', '<br>')}

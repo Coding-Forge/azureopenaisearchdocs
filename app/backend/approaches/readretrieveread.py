@@ -97,6 +97,12 @@ Thought: {agent_scratchpad}"""
         else:
             results = [doc[self.sourcepage_field] + ":" + nonewlines(doc[self.content_field][:250]) async for doc in r]
         content = "\n".join(results)
+
+        facets = r.get_facets()
+        for facet in facets['content']:
+            print(f'did i get a facet {facet}')
+
+
         return results, content
 
     async def run(self, q: str, overrides: dict[str, Any]) -> Any:

@@ -12,6 +12,12 @@ from azure.search.documents.aio import SearchClient
 from azure.storage.blob.aio import BlobServiceClient
 from opentelemetry.instrumentation.aiohttp_client import AioHttpClientInstrumentor
 from opentelemetry.instrumentation.asgi import OpenTelemetryMiddleware
+from clients.searchClient import AzureSearchClient
+from clients.storageClient import StorageClient
+#from phrases.extract import Key_Words
+from quart_schema import QuartSchema, validate_request, validate_response
+from dataclasses import dataclass
+
 from quart import (
     Blueprint,
     Quart,
@@ -22,6 +28,7 @@ from quart import (
     send_file,
     send_from_directory,
 )
+from quart_schema import ResponseSchemaValidationError
 
 from approaches.chatreadretrieveread import ChatReadRetrieveReadApproach
 from approaches.readdecomposeask import ReadDecomposeAsk
@@ -34,38 +41,71 @@ CONFIG_ASK_APPROACHES = "ask_approaches"
 CONFIG_CHAT_APPROACHES = "chat_approaches"
 CONFIG_BLOB_CONTAINER_CLIENT = "blob_container_client"
 
+
 bp = Blueprint("routes", __name__, static_folder='static')
 
-@bp.route("/")
-async def index():
-    return await bp.send_static_file("index.html")
 
-@bp.route("/favicon.ico")
-async def favicon():
-    return await bp.send_static_file("favicon.ico")
+@dataclass
+class Chat:
+    answer: str | None
+    data_points: list | None
+    thoughts: str | None
 
-@bp.route("/assets/<path:path>")
-async def assets(path):
-    return await send_from_directory("static/assets", path)
+@dataclass
+class Ask:
+    answer: str
+    data_points: list
+    thoughts: str
+
+@dataclass
+class File:
+    any: any
+
+@bp.errorhandler(ResponseSchemaValidationError)
+async def handle_response_validation_error(any):
+    print(f'what is the error {any}')
+    return {"error": "VALIDATION"}, 500
+
+
+#@bp.route("/", methods=["GET"])
+#async def index():
+#    html = await bp.send_static_file("index.html")
+#    print(type(html))
+#    return html
+
+#@bp.route("/favicon.ico", methods=["GET"])
+#async def favicon():
+#    html = await bp.send_static_file("favicon.ico")
+#    print(type(html))
+#    return html
+
+#@bp.route("/assets/<path:path>", methods=["GET"])
+#@validate_response(File,200)
+#async def assets(path):
+#    ff = await send_from_directory("static/assets", path)
+#    print(type(ff))
+#    return ff
 
 # Serve content files from blob storage from within the app to keep the example self-contained.
 # *** NOTE *** this assumes that the content files are public, or at least that all users of the app
 # can access all the files. This is also slow and memory hungry.
-@bp.route("/content/<path>")
-async def content_file(path):
-    blob_container_client = current_app.config[CONFIG_BLOB_CONTAINER_CLIENT]
-    blob = await blob_container_client.get_blob_client(path).download_blob()
-    if not blob.properties or not blob.properties.has_key("content_settings"):
-        abort(404)
-    mime_type = blob.properties["content_settings"]["content_type"]
-    if mime_type == "application/octet-stream":
-        mime_type = mimetypes.guess_type(path)[0] or "application/octet-stream"
-    blob_file = io.BytesIO()
-    await blob.readinto(blob_file)
-    blob_file.seek(0)
-    return await send_file(blob_file, mimetype=mime_type, as_attachment=False, attachment_filename=path)
+#@bp.route("/content/<path>")
+#@validate_response(File, status_code=200)
+#async def content_file(path):
+#    blob_container_client = current_app.config[CONFIG_BLOB_CONTAINER_CLIENT]
+#    blob = await blob_container_client.get_blob_client(path).download_blob()
+#    if not blob.properties or not blob.properties.has_key("content_settings"):
+#        abort(404)
+#    mime_type = blob.properties["content_settings"]["content_type"]
+#    if mime_type == "application/octet-stream":
+#        mime_type = mimetypes.guess_type(path)[0] or "application/octet-stream"
+#    blob_file = io.BytesIO()
+#    await blob.readinto(blob_file)
+#    blob_file.seek(0)
+#    return await send_file(blob_file, mimetype=mime_type, as_attachment=False, attachment_filename=path)
 
 @bp.route("/ask", methods=["POST"])
+@validate_response(Ask, 200)
 async def ask():
     if not request.is_json:
         return jsonify({"error": "request must be json"}), 415
@@ -84,7 +124,9 @@ async def ask():
         logging.exception("Exception in /ask")
         return jsonify({"error": str(e)}), 500
 
+
 @bp.route("/chat", methods=["POST"])
+@validate_response(Chat, 200)
 async def chat():
     if not request.is_json:
         return jsonify({"error": "request must be json"}), 415
@@ -98,7 +140,10 @@ async def chat():
         async with aiohttp.ClientSession() as s:
             openai.aiosession.set(s)
             r = await impl.run(request_json["history"], request_json.get("overrides") or {})
-        return jsonify(r)
+
+            # pull out the response body to match it to the dataclass
+            js = await jsonify(r).get_json()
+        return js, 200
     except Exception as e:
         logging.exception("Exception in /chat")
         return jsonify({"error": str(e)}), 500
@@ -132,6 +177,26 @@ async def setup_clients():
     # keys for each service
     # If you encounter a blocking error during a DefaultAzureCredential resolution, you can exclude the problematic credential by using a parameter (ex. exclude_shared_token_cache_credential=True)
     azure_credential = DefaultAzureCredential(exclude_shared_token_cache_credential = True)
+
+    #kw = Key_Words(
+    #    phrase="When it is time for bed you should turn off all mobile devices and give yourself a chance to fall asleep naturally",
+    #    credential=azure_credential
+    #)
+
+    #print("get to this point")
+    #words = await kw.sample_extract_key_phrases_async()
+    #for word in words:
+    #    print(words)
+
+    search_client = AzureSearchClient(
+        service_endpoint = f"https://{AZURE_SEARCH_SERVICE}.search.windows.net",
+        azure_credential=azure_credential
+    )
+
+    indx = await search_client.list_index()
+    print(f'what is indx {len(indx)}')
+    for i in indx:
+        print(f'this is the index if found {i}')
 
     # Set up clients for Cognitive Search and Storage
     search_client = SearchClient(
@@ -198,7 +263,9 @@ def create_app():
     if os.getenv("APPLICATIONINSIGHTS_CONNECTION_STRING"):
         configure_azure_monitor()
         AioHttpClientInstrumentor().instrument()
+    
     app = Quart(__name__)
+    QuartSchema(app)    
     app.register_blueprint(bp)
     app.asgi_app = OpenTelemetryMiddleware(app.asgi_app)
 

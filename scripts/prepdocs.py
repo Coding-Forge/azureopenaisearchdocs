@@ -380,6 +380,7 @@ if __name__ == "__main__":
 
         print("Processing files...")
         for filename in glob.glob(args.files):
+            print(f'this is the filename {os.path.basename(filename)}')
             if args.verbose: print(f"Processing '{filename}'")
             if args.remove:
                 remove_blobs(filename)
