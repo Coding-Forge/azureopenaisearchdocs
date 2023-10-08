@@ -11,6 +11,15 @@
     "location": {
       "value": "${AZURE_LOCATION}"
     },
+    "appServicePlanName": {
+      "value": "${AZURE_APP_SERVICE_PLAN}"
+    },
+    "backendServiceName": {
+      "value": "${AZURE_BACKEND_SERVICE}"
+    },
+    "backendResourceGroupName": {
+      "value": "${AZURE_BACKEND_RESOURCE_GROUP}"
+    },
     "principalId": {
       "value": "${AZURE_PRINCIPAL_ID}"
     },
@@ -28,6 +37,9 @@
     },
     "formRecognizerResourceGroupName": {
       "value": "${AZURE_FORMRECOGNIZER_RESOURCE_GROUP}"
+    },
+    "formRecognizerResourceGroupLocation":{
+      "value": "${AZURE_FORMRECOGNIZER_RESOURCE_GROUP_LOCATION}"
     },
     "formRecognizerSkuName": {
       "value": "S0"
@@ -49,6 +61,9 @@
     },
     "storageResourceGroupName": {
       "value": "${AZURE_STORAGE_RESOURCE_GROUP}"
+    },
+    "storageContainerName": {
+      "value": "${AZURE_STORAGE_CONTAINER}"
     },
     "chatGptDeploymentName": {
       "value": "${AZURE_OPENAI_CHATGPT_DEPLOYMENT=chat}"

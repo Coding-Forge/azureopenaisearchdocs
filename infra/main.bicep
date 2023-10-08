@@ -9,8 +9,8 @@ param environmentName string
 @description('Primary location for all resources')
 param location string
 
-param appServicePlanName string = 'openaisearchdocuments'
-param backendServiceName string = 'openaisearchbackendservice'
+param appServicePlanName string = ''
+param backendServiceName string = ''
 param resourceGroupName string = ''
 
 param applicationInsightsName string = ''
@@ -25,7 +25,7 @@ param searchIndexName string // Set in main.parameters.json
 param storageAccountName string = ''
 param storageResourceGroupName string = ''
 param storageResourceGroupLocation string = location
-param storageContainerName string = 'surface'
+param storageContainerName string = ''
 
 //param openAiServiceName string = ''
 param openAiResourceGroupName string = ''
@@ -48,7 +48,7 @@ param embeddingModelName string = 'text-embedding-ada-002'
 */
 
 param formRecognizerServiceName string = ''
-param formRecognizerResourceGroupLocation string = location
+param formRecognizerResourceGroupLocation string = ''
 param formRecognizerSkuName string = 'S0'
 
 // change this to whatever you need it to be
@@ -229,7 +229,7 @@ module storage 'core/storage/storage-account.bicep' = {
     tags: tags
     publicNetworkAccess: 'Enabled'
     sku: {
-      name: 'Standard_ZRS'
+      name: 'Standard_LRS'
     }
     deleteRetentionPolicy: {
       enabled: true

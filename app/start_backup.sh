@@ -31,9 +31,31 @@ if [ $? -ne 0 ]; then
 fi
 
 echo ""
+echo "Restoring frontend npm packages"
+echo ""
+
+cd ../frontend
+npm install
+if [ $? -ne 0 ]; then
+    echo "Failed to restore frontend npm packages"
+    exit $?
+fi
+
+echo ""
+echo "Building frontend"
+echo ""
+
+npm run build
+if [ $? -ne 0 ]; then
+    echo "Failed to build frontend"
+    exit $?
+fi
+
+echo ""
 echo "Starting backend"
 echo ""
 
+cd ../backend
 ./backend_env/bin/python -m quart --app main:app run --port 50505 --reload
 if [ $? -ne 0 ]; then
     echo "Failed to start backend"

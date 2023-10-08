@@ -161,3 +161,4 @@ cython_debug/
 
 # don't upload the .azure folder
 .azure
+archive
