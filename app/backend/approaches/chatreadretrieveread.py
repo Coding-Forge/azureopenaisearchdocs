@@ -21,19 +21,19 @@ class ChatReadRetrieveReadApproach(ChatApproach):
     top documents from search, then constructs a prompt with them, and then uses OpenAI to generate an completion
     (answer) with that prompt.
     """
-    system_message_chat_conversation = """Assistant helps the company employees with their healthcare plan questions, and questions about the employee handbook. Be brief in your answers.
-Answer ONLY with the facts listed in the list of sources below. If there isn't enough information below, say you don't know. Do not generate answers that don't use the sources below. If asking a clarifying question to the user would help, ask the question.
+    system_message_chat_conversation = """Assistant helps the extracting the product, color, size, quantity and sku. If color, quantity is missing then you are to return blank for color and 0 for quantity. 
+    Format the response as a JSON object with the following fields: {\"product\":\"\",\"quantity\":\"\",\"color\":\"\",\"backing\":\"\",\"Address\":{\"shipTo\":\"\",\"address\":\"\",\"City\":\"\",\"state\":\"\",\"Zip\":\"\"}}. Be brief in your answers. Answer ONLY with the facts listed in the list of sources below. If there isn't enough information below, say you don't know. Do not generate answers that don't use the sources below. If asking a clarifying question to the user would help, ask the question.
 For tabular information return it as an html table. Do not return markdown format. If the question is not in English, answer in the language used in the question.
 Each source has a name followed by colon and the actual information, always include the source name for each fact you use in the response. Use square brackets to reference the source, e.g. [info1.txt]. Don't combine sources, list each source separately, e.g. [info1.txt][info2.pdf].
 {follow_up_questions_prompt}
 {injected_prompt}
 """
-    follow_up_questions_prompt_content = """Generate three very brief follow-up questions that the user would likely ask next about their healthcare plan and employee handbook.
+    follow_up_questions_prompt_content = """Generate three very brief follow-up questions that the user would likely ask next about other items from the catalog.
 Use double angle brackets to reference the questions, e.g. <<Are there exclusions for prescriptions?>>.
 Try not to repeat questions that have already been asked.
 Only generate questions and do not generate any text before or after the questions, such as 'Next Questions'"""
 
-    query_prompt_template = """Below is a history of the conversation so far, and a new question asked by the user that needs to be answered by searching in a knowledge base about employee healthcare plans and the employee handbook.
+    query_prompt_template = """Below is a history of the conversation so far, and a new question asked by the user that needs to be answered by searching product catalog.
 Generate a search query based on the conversation and the new question.
 Do not include cited source filenames and document names e.g info.txt or doc.pdf in the search query terms.
 Do not include any text inside [] or <<>> in the search query terms.
@@ -42,10 +42,40 @@ If the question is not in English, translate the question to English before gene
 If you cannot generate a search query, return just the number 0.
 """
     query_prompt_few_shots = [
-        {'role' : USER, 'content' : 'What are my health plans?' },
-        {'role' : ASSISTANT, 'content' : 'Show available health plans' },
-        {'role' : USER, 'content' : 'does my plan cover cardio?' },
-        {'role' : ASSISTANT, 'content' : 'Health plan cardio coverage' }
+        {'role' : USER, 'content' : 'Ship 10 samples of Backstreet Brawl color code is 862 to James Alexander at 13 Pudding Stone Way, Ashville North Carolina 29381' },
+        {'role' : ASSISTANT, 'content' : '''
+            You would like following:
+            {
+                "product":"Backstreet Brawl",
+                "quantity":"10",
+                "Manufacturing Part No":"STL0014496",
+                "Backing":"TL",            
+                "Address":{
+                    "shipTo":"James Alexander",
+                    "Address":"13 Pudding Stone Way",
+                    "City":"Ashville",
+                    "State":"North Carolina",
+                    "Zip":"29381"
+                }
+            }
+        ''' },
+        {'role' : USER, 'content' : 'My project needs 3 samples of style BT596 color code 353 shipped to 45 Ginger Circle, Fairfield New Jersy, 10393 ?' },
+        {'role' : ASSISTANT, 'content' : '''
+            You would like following:
+            {
+                "product":"Chromatic Cadence",
+                "quantity":"3",
+                "Manufacturing Part No":"STL0017460",
+                "Backing":"TL",
+                "Address":{
+                    "shipTo":"James Alexander",
+                    "Address":"13 Pudding Stone Way",
+                    "City":"Ashville",
+                    "State":"North Carolina",
+                    "Zip":"29381"
+                }
+            }
+        ''' }
     ]
 
     def __init__(self, search_client: SearchClient, chatgpt_deployment: str, chatgpt_model: str, embedding_deployment: str, sourcepage_field: str, content_field: str):

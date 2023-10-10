@@ -1,4 +1,4 @@
-#!/home/brandon/projects/openai/manufacturing/azureopenaisearchdocs/app/backend/backend_env/bin/python
+#!/home/brandon/projects/openai/manufacturing/mohawk/hackathon/app/backend/backend_env/bin/python
 # -*- coding: utf-8 -*-
 import re
 import sys

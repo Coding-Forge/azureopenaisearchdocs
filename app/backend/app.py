@@ -67,42 +67,40 @@ async def handle_response_validation_error(any):
     return {"error": "VALIDATION"}, 500
 
 
-#@bp.route("/", methods=["GET"])
-#async def index():
-#    html = await bp.send_static_file("index.html")
-#    print(type(html))
-#    return html
+@bp.route("/", methods=["GET"])
+async def index():
+    html = await bp.send_static_file("index.html")
+    print(type(html))
+    return html
 
-#@bp.route("/favicon.ico", methods=["GET"])
-#async def favicon():
-#    html = await bp.send_static_file("favicon.ico")
-#    print(type(html))
-#    return html
+@bp.route("/favicon.ico", methods=["GET"])
+async def favicon():
+    html = await bp.send_static_file("favicon.ico")
+    print(type(html))
+    return html
 
-#@bp.route("/assets/<path:path>", methods=["GET"])
-#@validate_response(File,200)
-#async def assets(path):
-#    ff = await send_from_directory("static/assets", path)
-#    print(type(ff))
-#    return ff
+@bp.route("/assets/<path:path>", methods=["GET"])
+async def assets(path):
+    ff = await send_from_directory("static/assets", path)
+    print(type(ff))
+    return ff
 
 # Serve content files from blob storage from within the app to keep the example self-contained.
 # *** NOTE *** this assumes that the content files are public, or at least that all users of the app
 # can access all the files. This is also slow and memory hungry.
-#@bp.route("/content/<path>")
-#@validate_response(File, status_code=200)
-#async def content_file(path):
-#    blob_container_client = current_app.config[CONFIG_BLOB_CONTAINER_CLIENT]
-#    blob = await blob_container_client.get_blob_client(path).download_blob()
-#    if not blob.properties or not blob.properties.has_key("content_settings"):
-#        abort(404)
-#    mime_type = blob.properties["content_settings"]["content_type"]
-#    if mime_type == "application/octet-stream":
-#        mime_type = mimetypes.guess_type(path)[0] or "application/octet-stream"
-#    blob_file = io.BytesIO()
-#    await blob.readinto(blob_file)
-#    blob_file.seek(0)
-#    return await send_file(blob_file, mimetype=mime_type, as_attachment=False, attachment_filename=path)
+@bp.route("/content/<path>")
+async def content_file(path):
+    blob_container_client = current_app.config[CONFIG_BLOB_CONTAINER_CLIENT]
+    blob = await blob_container_client.get_blob_client(path).download_blob()
+    if not blob.properties or not blob.properties.has_key("content_settings"):
+        abort(404)
+    mime_type = blob.properties["content_settings"]["content_type"]
+    if mime_type == "application/octet-stream":
+        mime_type = mimetypes.guess_type(path)[0] or "application/octet-stream"
+    blob_file = io.BytesIO()
+    await blob.readinto(blob_file)
+    blob_file.seek(0)
+    return await send_file(blob_file, mimetype=mime_type, as_attachment=False, attachment_filename=path)
 
 @bp.route("/ask", methods=["POST"])
 @validate_response(Ask, 200)
@@ -119,14 +117,19 @@ async def ask():
         async with aiohttp.ClientSession() as s:
             openai.aiosession.set(s)
             r = await impl.run(request_json["question"], request_json.get("overrides") or {})
-        return jsonify(r)
+
+            # pull out the response body to match it to the dataclass
+            js = await jsonify(r).get_json()
+        return js, 200
+
+        #return jsonify(r)
     except Exception as e:
         logging.exception("Exception in /ask")
         return jsonify({"error": str(e)}), 500
 
-
+# need to fix this to allow for a JSON object to be returned in the answer
+#@validate_response(Chat, 200)
 @bp.route("/chat", methods=["POST"])
-@validate_response(Chat, 200)
 async def chat():
     if not request.is_json:
         return jsonify({"error": "request must be json"}), 415
