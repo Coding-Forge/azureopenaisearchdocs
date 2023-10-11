@@ -29,6 +29,7 @@ param storageContainerName string = ''
 
 //param openAiServiceName string = ''
 param openAiResourceGroupName string = ''
+param openAiResourceGroupLocation string = ''
 
 /*
 @description('Location for the OpenAI resource group')
@@ -39,7 +40,6 @@ param openAiResourceGroupName string = ''
   }
 })
 
-param openAiResourceGroupLocation string
 param openAiSkuName string = 'S0'
 param chatGptDeploymentCapacity int = 30
 param chatGptModelVersion string = '0301'
