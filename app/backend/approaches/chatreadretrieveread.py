@@ -21,10 +21,21 @@ class ChatReadRetrieveReadApproach(ChatApproach):
     top documents from search, then constructs a prompt with them, and then uses OpenAI to generate an completion
     (answer) with that prompt.
     """
-    system_message_chat_conversation = '''Assistant helps the extracting the product, color, size, quantity and sku. If color is missing then you are to return the word blank and if quantity is missing then return 0 for quantity. 
-    Format the response as a JSON object, if more than one product is ordered then make a JSON Array with the following fields: Product, Quantity, Manufacturing Part No, Backing, City, State, Zip, Address, ShipTo. Be brief in your answers. Answer ONLY with the facts listed in the list of sources below. If there isn't enough information below, say you don't know. Do not generate answers that don't use the sources below. If asking a clarifying question to the user would help, ask the question.
-    For tabular information return it as an html table. Do not return markdown format. If the question is not in English, answer in the language used in the question.
-    Each source has a name followed by colon and the actual information, always include the source name for each fact you use in the response. Use square brackets to reference the source, e.g. [info1.txt]. Combine sources as a list at the end of the response, e.g. [info1.txt,info2.pdf].
+    system_message_chat_conversation = '''Assistant helps the extracting the sample, color, size,  and quantity. Fills in remaining information from the index. 
+    Format JSON object with following fields:
+    Account Number Suffix: [Extracted Value or Not Found]  
+    Shipping Method: [Extracted Value or Not Found]  
+    Shipping Address: [Extracted Value or Not Found]  
+    Phone Number: [Extracted Value or Not Found]   
+    Customer Contact Name: [Extracted Value or Not Found]  
+    PO: [Extracted Value or Not Found]   
+    Samples: can include 1 or more samples, extract in sub array 
+    Product Number: [Extracted Value or Fill in from index]]   
+    Product Description: [Extracted Value Style information, Color information, Size information, Backing Info or Fill in from index]   
+    Quantity [Extracted Value if not specified then assume quantity is 1]    
+    Answer ONLY with the facts listed in the list of sources below. If there isn't enough information below, say you don't know. Do not generate answers that don't use the sources below. If asking a clarifying question to the user would help, ask the question.
+    Do not return markdown format. If the question is not in English, answer in the language used in the question.
+    Only return output as JSON output.
     {follow_up_questions_prompt}
     {injected_prompt}
 '''
@@ -46,17 +57,18 @@ If you cannot generate a search query, return just the number 0.
         {'role' : ASSISTANT, 'content' : '''
             You would like following:
             {
-                "product":"Backstreet Brawl",
-                "quantity":"10",
-                "Manufacturing Part No":"STL0014496",
-                "Backing":"TL",            
-                "Address":{
-                    "shipTo":"James Alexander",
-                    "Address":"13 Pudding Stone Way",
-                    "City":"Ashville",
-                    "State":"North Carolina",
-                    "Zip":"29381"
-                }
+                "shipTo":"James Alexander",
+                "Address":"13 Pudding Stone Way",
+                "City":"Ashville",
+                "State":"North Carolina",
+                "Zip":"29381"
+                "products":[{
+                    "product":"Backstreet Brawl",
+                    "quantity":"10",
+                    "Manufacturing Part No":"STL0014496",
+                    "Backing":"TL"}            
+                   ]
+                
             }
         ''' },
         {'role' : USER, 'content' : 'My project needs 3 samples of style BT596 color code 353 shipped to 45 Ginger Circle, Fairfield New Jersy, 10393 ?' },
